@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Persons from "./Components/Persons";
 import PersonForm from "./Components/PersonForm";
 import Filter from "./Components/Filter";
+import personService from "./Services/persons";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -9,22 +10,50 @@ const App = () => {
   const [newNumber, setNewNumber] = useState("");
   const [newFilter, setNewFilter] = useState("");
 
+  const toggleDeleteOf = (id) => {
+    const personToDelete = persons.find((person) => person.id === id);
+    if (window.confirm(`Delete ${personToDelete.name}?`)) {
+      personService.deleteEntry(id).then(() => {
+        setPersons(persons.filter((person) => person.id !== id));
+      });
+    }
+  };
+
+  useEffect(() => {
+    personService.getAll().then(initialPersons => {
+      setPersons(initialPersons);
+    });
+  }, []);
+
   const addName = (event) => {
     event.preventDefault();
 
-    const nameObject = {
+    const personObject = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1,
     };
 
-    const nameExists = persons.some((person) => person.name === newName);
+    const nameExists = persons.find((person) => person.name === newName);
     if (nameExists) {
-      alert(`${newName} is already added to the phonebook`);
+      if (
+        window.confirm(
+          `${newName} is already added to phonebook, replace the old number with a new one?`
+        )
+      ) {
+        personService.update(nameExists.id, personObject).then((returnedPerson) => {
+          setPersons(
+            persons.map((p) => (p.id !== nameExists.id ? p : returnedPerson))
+          );
+          setNewName("");
+          setNewNumber("");
+        });
+      }
     } else {
-      setPersons(persons.concat(nameObject));
-      setNewName("");
-      setNewNumber("");
+      personService.create(personObject).then((returnedPerson) => {
+        setPersons(persons.concat(returnedPerson));
+        setNewName("");
+        setNewNumber("");
+      });
     }
   };
 
@@ -55,7 +84,7 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h3>Numbers</h3>
-      <Persons personsToShow={personsToShow}/>
+      <Persons personsToShow={personsToShow} toggleDeleteOf={toggleDeleteOf} />
     </div>
   );
 };
