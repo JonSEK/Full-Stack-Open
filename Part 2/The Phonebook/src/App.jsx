@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Persons from "./Components/Persons";
 import PersonForm from "./Components/PersonForm";
 import Filter from "./Components/Filter";
@@ -12,94 +12,82 @@ const App = () => {
   const [newFilter, setNewFilter] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const toggleDeleteOf = (id) => {
+  const toggleDeleteOf = async (id) => {
     const personToDelete = persons.find((person) => person.id === id);
     if (window.confirm(`Delete ${personToDelete.name}?`)) {
-      personService
-        .deleteEntry(id)
-        .then(() => {
-          setPersons(persons.filter((person) => person.id !== id));
-          setErrorMessage(`Deleted ${personToDelete.name}`);
-          setTimeout(() => {
-            setErrorMessage(null);
-          }, 5000);
-        })
-        .catch((error) => {
-          setErrorMessage(
-            `Information of ${personToDelete.name} has already been removed from server`
-          );
-          setTimeout(() => {
-            setErrorMessage(null);
-          }, 5000);
-        });
+      try {
+        await personService.deleteEntry(id);
+        setPersons(persons.filter((person) => person.id !== id));
+        setErrorMessage(`Deleted ${personToDelete.name}`);
+        setTimeout(() => setErrorMessage(null), 5000);
+      } catch (error) {
+        setErrorMessage(
+          `Information of ${personToDelete.name} has already been removed from the server`
+        );
+        setTimeout(() => setErrorMessage(null), 5000);
+      }
     }
   };
 
   useEffect(() => {
-    personService.getAll().then((initialPersons) => {
+    const fetchPersons = async () => {
+      const initialPersons = await personService.getAll();
       setPersons(initialPersons);
-    });
-  }, []);
-
-  const addName = (event) => {
-    event.preventDefault();
-
-    const personObject = {
-      name: newName,
-      number: newNumber,
     };
 
+    fetchPersons();
+  }, []);
+
+  const addName = async (event) => {
+    event.preventDefault();
+
+    const personObject = { name: newName, number: newNumber };
+
     const nameExists = persons.find((person) => person.name === newName);
+
     if (nameExists) {
       if (
         window.confirm(
-          `${newName} is already added to phonebook, replace the old number with a new one?`
+          `${newName} is already added to the phonebook, replace the old number with a new one?`
         )
       ) {
-        personService
-          .update(nameExists.id, personObject)
-          .then((returnedPerson) => {
-            setPersons(
-              persons.map((p) => (p.id !== nameExists.id ? p : returnedPerson))
-            );
-            setErrorMessage(`Updated ${newName}`);
-            setTimeout(() => {
-              setErrorMessage(null);
-            }, 5000);
-            setNewName("");
-            setNewNumber("");
-          })
-          .catch((error) => {
-            setErrorMessage(
-              `Information of ${newName} has already been removed from server`
-            );
-            setTimeout(() => {
-              setErrorMessage(null);
-            }, 5000);
-          });
+        try {
+          const returnedPerson = await personService.update(
+            nameExists.id,
+            personObject
+          );
+          setPersons(
+            persons.map((p) => (p.id !== nameExists.id ? p : returnedPerson))
+          );
+          setErrorMessage(`Updated ${newName}`);
+          setTimeout(() => setErrorMessage(null), 5000);
+          setNewName("");
+          setNewNumber("");
+        } catch (error) {
+          setErrorMessage(
+            `Information of ${newName} has already been removed from the server`
+          );
+          setTimeout(() => setErrorMessage(null), 5000);
+        }
       }
     } else {
-      personService.create(personObject).then((returnedPerson) => {
-        setPersons(persons.concat(returnedPerson));
+      try {
+        const returnedPerson = await personService.create(personObject);
+        setPersons([...persons, returnedPerson]);
         setErrorMessage(`Added ${newName}`);
-        setTimeout(() => {
-          setErrorMessage(null);
-        }, 5000);
+        setTimeout(() => setErrorMessage(null), 5000);
         setNewName("");
         setNewNumber("");
-      });
+      } catch (error) {
+        // Handle error if needed
+        console.error("Error adding a new person:", error);
+      }
     }
   };
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value);
-  };
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value);
-  };
-  const handleFilter = (event) => {
-    setNewFilter(event.target.value);
-  };
+  const handleNameChange = (event) => setNewName(event.target.value);
+  const handleNumberChange = (event) => setNewNumber(event.target.value);
+  const handleFilter = (event) => setNewFilter(event.target.value);
 
   const personsToShow = persons.filter((person) =>
     person.name.toLowerCase().includes(newFilter.toLowerCase())
