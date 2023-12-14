@@ -17,7 +17,7 @@ Refer to the corresponding folders for code, exercises, and any additional resou
 |0|![Static Badge](https://img.shields.io/badge/Progress%20-%20100%25%20-%20white?labelColor=%23005EA6&color=%23DE5B9E)|Fundamentals of Web apps
 |1|![Static Badge](https://img.shields.io/badge/Progress%20-%20100%25%20-%20white?labelColor=%23005EA6&color=%23DE5B9E)|Introduction to React
 |2|![Static Badge](https://img.shields.io/badge/Progress%20-%20100%25%20-%20white?labelColor=%23005EA6&color=%23DE5B9E)|Communicating with server
-|3|![Static Badge](https://img.shields.io/badge/Progress%20-%200%25%20-%20white?labelColor=%23005EA6&color=%23DE5B9E)|Programming a server with NodeJS and Express
+|3|![Static Badge](https://img.shields.io/badge/Progress%20-%20100%25%20-%20white?labelColor=%23005EA6&color=%23DE5B9E)|Programming a server with NodeJS and Express
 |4|![Static Badge](https://img.shields.io/badge/Progress%20-%200%25%20-%20white?labelColor=%23005EA6&color=%23DE5B9E)|Testing Express servers, user administration
 |5|![Static Badge](https://img.shields.io/badge/Progress%20-%200%25%20-%20white?labelColor=%23005EA6&color=%23DE5B9E)|Testing React apps
 |6|![Static Badge](https://img.shields.io/badge/Progress%20-%200%25%20-%20white?labelColor=%23005EA6&color=%23DE5B9E)|Advanced state management
