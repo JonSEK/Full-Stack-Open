@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Persons from "./Components/Persons";
 import PersonForm from "./Components/PersonForm";
 import Filter from "./Components/Filter";
@@ -64,10 +64,14 @@ const App = () => {
           setNewName("");
           setNewNumber("");
         } catch (error) {
-          setErrorMessage(
-            `Information of ${newName} has already been removed from the server`
-          );
-          setTimeout(() => setErrorMessage(null), 5000);
+          if (error.response && error.response.status === 400) {
+            // Handle validation error
+            setErrorMessage(error.response.data.error); // Assuming the error message is in the 'error' property
+            setTimeout(() => setErrorMessage(null), 5000);
+          } else {
+            // Handle other errors
+            console.error("Error updating a person:", error);
+          }
         }
       }
     } else {
@@ -79,8 +83,14 @@ const App = () => {
         setNewName("");
         setNewNumber("");
       } catch (error) {
-        // Handle error if needed
-        console.error("Error adding a new person:", error);
+        if (error.response && error.response.status === 400) {
+          // Handle validation error
+          setErrorMessage(error.response.data.error); // Assuming the error message is in the 'error' property
+          setTimeout(() => setErrorMessage(null), 5000);
+        } else {
+          // Handle other errors
+          console.error("Error adding a new person:", error);
+        }
       }
     }
   };
