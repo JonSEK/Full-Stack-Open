@@ -2,23 +2,26 @@ const blogsRouter = require("express").Router();
 const Blog = require("../models/blog");
 
 blogsRouter.get("/", async (request, response) => {
-  const blogs = await Blog.find({});
+  const blogs = await Blog.find({}).populate("user", { username: 1, name: 1 });
   response.json(blogs);
 });
 
 blogsRouter.post("/", async (request, response) => {
-  const { title, author, url, likes } = request.body;
-  if (!title || !url) {
-    // If title or url is missing, respond with 400 Bad Request
-    return response.status(400).json({ error: "Title and url are required" });
+  const user = request.user;
+  const body = request.body;
+  if (!user) {
+    return response.status(401).json({ error: "Authentication required." });
   }
   const blog = new Blog({
-    title,
-    author,
-    url,
-    likes: likes === undefined ? 0 : likes,
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes === undefined ? 0 : body.likes,
+    user: user.id,
   });
   const savedBlog = await blog.save();
+  user.blogs = user.blogs.concat(savedBlog._id);
+  await user.save();
   response.status(201).json(savedBlog);
 });
 
@@ -32,7 +35,28 @@ blogsRouter.get("/:id", async (request, response) => {
 });
 
 blogsRouter.delete("/:id", async (request, response) => {
-  await Blog.findByIdAndDelete(request.params.id);
+  const blogId = request.params.id;
+  const user = request.user;
+  // Check if the token is present in the request headers
+  if (!user) {
+    return response.status(401).json({ error: "Authentication required." });
+  }
+
+  // Find the blog by its ID
+  const blog = await Blog.findById(blogId);
+
+  // Check if the blog exists
+  if (!blog) {
+    return response.status(404).json({ error: "Blog not found." });
+  }
+
+  // Check if the user attempting to delete the blog is the creator
+  if (blog.user.toString() !== user._id.toString()) {
+    return response.status(403).json({
+      error: "Unauthorized. You do not have permission to delete this blog.",
+    });
+  }
+  await Blog.findByIdAndDelete(blogId);
   response.status(204).end();
 });
 
